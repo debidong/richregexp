@@ -94,6 +94,7 @@ func splitRegex(str string) ([]lookahead, error) {
 
 func MatchString(pattern string, s string) (matched bool, err error) {
 	lookaheads, err := splitRegex(pattern)
+	fmt.Println(lookaheads)
 	if err != nil {
 		return false, err
 	}
@@ -104,7 +105,6 @@ func matchString(pattern string, lookaheads []lookahead, offset int, s string) (
 	if len(lookaheads) == 0 {
 		fmt.Println("----")
 		fmt.Printf("try to match %v by %v\n", s, pattern)
-		fmt.Println("----")
 		reg, err := regexp.Compile(pattern)
 		if err != nil {
 			return false, err
@@ -112,16 +112,15 @@ func matchString(pattern string, lookaheads []lookahead, offset int, s string) (
 		return reg.MatchString(s), nil
 	}
 	start, end, t := lookaheads[0].idx[0]-offset, lookaheads[0].idx[1]-offset, lookaheads[0].t
-	regPre := pattern[:start]
+	patternPre := pattern[:start]
 	lookahead := pattern[start+3 : end-1]
 
-	reg, err := regexp.Compile(regPre)
+	reg, err := regexp.Compile(patternPre)
 	if err != nil {
 		return false, err
 	}
 	fmt.Println("----")
-	fmt.Printf("try to match %v by %v\n", s, pattern)
-	fmt.Println("----")
+	fmt.Printf("try to match %v by %v\n", s, patternPre)
 
 	idxMatched := reg.FindAllStringIndex(s, -1)
 	for _, idx := range idxMatched {
