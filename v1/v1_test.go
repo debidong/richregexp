@@ -49,6 +49,9 @@ type testcase struct {
 }
 
 var testcases = []testcase{
-	{reg: "foo(?!bar)", s: "foobar foobar", matched: true},
+	{reg: "foo(?!bar)", s: "foobar foobar", matched: false},
 	{reg: "foo(?!bar)", s: "foobaz foobak", matched: true},
+	{reg: "foo(?!bar)", s: "foobar foobak", matched: true},
+	{reg: "foo(?!bar)", s: "foobaz foobar", matched: true},
+	{reg: "a(?!b)c(?!d)", s: "ac", matched: true}, // TODO: this fails
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"strings"
 )
 
 const bracketOrdinary = "("
@@ -113,20 +114,24 @@ func matchString(pattern string, lookaheads []lookahead, offset int, s string) (
 	start, end, t := lookaheads[0].idx[0]-offset, lookaheads[0].idx[1]-offset, lookaheads[0].t
 	regPre := pattern[:start]
 	lookahead := pattern[start+3 : end-1]
+
 	reg, err := regexp.Compile(regPre)
 	if err != nil {
 		return false, err
 	}
 	fmt.Println("----")
-	fmt.Printf("try to match %v by %v\n", s, regPre)
+	fmt.Printf("try to match %v by %v\n", s, pattern)
 	fmt.Println("----")
+
 	idxMatched := reg.FindAllStringIndex(s, -1)
 	for _, idx := range idxMatched {
-		offset += idx[1]
-		s = s[idx[1]:]
+		newOffset := idx[1] + offset
 		pattern = "^" + lookahead
+		var newS string
+		newS = strings.Clone(s)
+		newS = newS[newOffset:]
 		newLookaheads := slices.Clone(lookaheads[:len(lookaheads)-1])
-		matched, err := matchString(pattern, newLookaheads, offset, s)
+		matched, err := matchString(pattern, newLookaheads, newOffset, newS)
 		if err != nil {
 			return false, err
 		}
