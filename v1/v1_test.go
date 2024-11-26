@@ -50,16 +50,16 @@ type testcase struct {
 
 var testcases = []testcase{
 	// single negative lookahead
-	// {reg: "foo(?!bar)", s: "foobar foobar", matched: false},
-	// {reg: "foo(?!bar)", s: "foobaz foobak", matched: true},
-	// {reg: "foo(?!bar)", s: "foobar foobak", matched: true},
-	// {reg: "foo(?!bar)", s: "foobaz foobar", matched: true},
+	{reg: "foo(?!bar)", s: "foobar foobar", matched: false},
+	{reg: "foo(?!bar)", s: "foobaz foobak", matched: true},
+	{reg: "foo(?!bar)", s: "foobar foobak", matched: true},
+	{reg: "foo(?!bar)", s: "foobaz foobar", matched: true},
 
 	// single positive lookahead
-	// {reg: "foo(?=bar)", s: "fooboo foobaw", matched: false},
-	// {reg: "foo(?=bar)", s: "fooboo foobar", matched: true},
-	// {reg: "foo(?=bar)", s: "foobar fooboo", matched: true},
-	// {reg: "foo(?=bar)", s: "foobar foobar", matched: true},
+	{reg: "foo(?=bar)", s: "fooboo foobaw", matched: false},
+	{reg: "foo(?=bar)", s: "fooboo foobar", matched: true},
+	{reg: "foo(?=bar)", s: "foobar fooboo", matched: true},
+	{reg: "foo(?=bar)", s: "foobar foobar", matched: true},
 
 	// multiple negative lookahead
 

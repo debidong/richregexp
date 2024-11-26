@@ -98,10 +98,10 @@ func MatchString(pattern string, s string) (matched bool, err error) {
 	if err != nil {
 		return false, err
 	}
-	return matchString(pattern, lookaheads, 0, s)
+	return matchString(pattern, lookaheads, 0, 0, s)
 }
 
-func matchString(pattern string, lookaheads []lookahead, offset int, s string) (matched bool, err error) {
+func matchString(pattern string, lookaheads []lookahead, offset int, patternOffset int, s string) (matched bool, err error) {
 	if len(lookaheads) == 0 {
 		fmt.Println("----")
 		fmt.Printf("try to match %v by %v\n", s, pattern)
@@ -111,7 +111,7 @@ func matchString(pattern string, lookaheads []lookahead, offset int, s string) (
 		}
 		return reg.MatchString(s), nil
 	}
-	start, end, t := lookaheads[0].idx[0]-offset, lookaheads[0].idx[1]-offset, lookaheads[0].t
+	start, end, t := lookaheads[0].idx[0]-patternOffset, lookaheads[0].idx[1]-patternOffset, lookaheads[0].t
 	patternPre := pattern[:start]
 	lookahead := pattern[start+3 : end-1]
 
@@ -123,14 +123,15 @@ func matchString(pattern string, lookaheads []lookahead, offset int, s string) (
 	fmt.Printf("try to match %v by %v\n", s, patternPre)
 
 	idxMatched := reg.FindAllStringIndex(s, -1)
+	patternOffset = end + patternOffset
 	for _, idx := range idxMatched {
-		newOffset := idx[1] + offset
-		pattern = "^" + lookahead
+		strOffset := idx[1] + offset
+		pattern = "^" + lookahead + pattern[end:]
 		var newS string
 		newS = strings.Clone(s)
-		newS = newS[newOffset:]
-		newLookaheads := slices.Clone(lookaheads[:len(lookaheads)-1])
-		matched, err := matchString(pattern, newLookaheads, newOffset, newS)
+		newS = newS[strOffset:]
+		newLookaheads := slices.Clone(lookaheads[1:])
+		matched, err := matchString(pattern, newLookaheads, strOffset, patternOffset, newS)
 		if err != nil {
 			return false, err
 		}
