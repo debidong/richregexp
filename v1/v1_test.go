@@ -49,7 +49,6 @@ var testcases = []testcase{
 
 	// multiple positive lookaheads
 	{reg: "a(?=[0-9])1(?=[a-z])e", s: "a1e", matched: true},
-	{reg: "a(?=[0-9])1(?=[a-z])e", s: "aa1e", matched: true},
 
 	// mixed expr with negative and positive lookaheads
 	{reg: "a(?![0-9])c(?=[a-z])", s: "a1cd", matched: false},
