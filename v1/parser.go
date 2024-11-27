@@ -92,18 +92,17 @@ func splitRegex(str string) ([]lookahead, error) {
 	return tree.idxLookaheads, nil
 }
 
+// MatchString checks whether a string matches the given regular expression, with additional supports for negative & positive lookaheads compared with regexp.MatchString(). The algorithm in this version uses stacks to extract lookahead expressions, hence, it does not support regular expressions with NESTED lookaheads.
 func MatchString(pattern string, s string) (matched bool, err error) {
 	lookaheads, err := splitRegex(pattern)
-	fmt.Println(lookaheads)
 	if err != nil {
 		return false, err
 	}
-	return matchString(pattern, lookaheads, 0, 0, s)
+	return matchString(pattern, s, lookaheads, 0, 0, true)
 }
 
-func matchString(pattern string, lookaheads []lookahead, offset int, patternOffset int, s string) (matched bool, err error) {
+func matchString(pattern string, s string, lookaheads []lookahead, strOffset int, exprOffset int, isFirstRound bool) (matched bool, err error) {
 	if len(lookaheads) == 0 {
-		fmt.Println("----")
 		fmt.Printf("try to match %v by %v\n", s, pattern)
 		reg, err := regexp.Compile(pattern)
 		if err != nil {
@@ -111,36 +110,59 @@ func matchString(pattern string, lookaheads []lookahead, offset int, patternOffs
 		}
 		return reg.MatchString(s), nil
 	}
-	start, end, t := lookaheads[0].idx[0]-patternOffset, lookaheads[0].idx[1]-patternOffset, lookaheads[0].t
-	patternPre := pattern[:start]
-	lookahead := pattern[start+3 : end-1]
+	// the implementation divides regular expr into numbers of pieces, each of which contains two parts:
+	// TYP | ordinary expr | lookahead expr | ...
+	// LEN | >=0           | >=0            | ...
 
-	reg, err := regexp.Compile(patternPre)
+	// step-1: try to match string with ordinary expr
+	curLookahead := lookaheads[0]
+	start, end := curLookahead.idx[0]-exprOffset, curLookahead.idx[1]-exprOffset
+
+	exprOrd := pattern[:start]
+	if !isFirstRound {
+		exprOrd = "^" + exprOrd
+	}
+	exprLkahead := pattern[start+3 : end-1]
+
+	reg, err := regexp.Compile(exprOrd)
 	if err != nil {
 		return false, err
 	}
-	fmt.Println("----")
-	fmt.Printf("try to match %v by %v\n", s, patternPre)
+	fmt.Printf("try to match %v by %v\n", s, exprOrd)
 
 	idxMatched := reg.FindAllStringIndex(s, -1)
-	patternOffset = end + patternOffset
+	exprOffset = end + exprOffset
+
+	// step-2 try to check whether the latter part of the string meets the lookahead assertion
+	ret := false
 	for _, idx := range idxMatched {
-		strOffset := idx[1] + offset
-		pattern = "^" + lookahead + pattern[end:]
-		var newS string
-		newS = strings.Clone(s)
-		newS = newS[strOffset:]
-		newLookaheads := slices.Clone(lookaheads[1:])
-		matched, err := matchString(pattern, newLookaheads, strOffset, patternOffset, newS)
+		strSuf := s[idx[1]:]
+		reg, err := regexp.Compile("^" + exprLkahead)
+		fmt.Printf("try to match %v by %v\n", strSuf, "^"+exprLkahead)
 		if err != nil {
 			return false, err
 		}
-		if t == bracketNegLookahead {
+		matched := reg.MatchString(strSuf)
+		if curLookahead.t == bracketNegLookahead {
 			matched = !matched
 		}
-		if matched {
-			return matched, nil
+		if !matched {
+			continue
 		}
+		newStrOffset := strOffset + idx[1]
+		newPattern := strings.Clone(pattern[end:])
+		newLookaheads := slices.Clone(lookaheads[1:])
+
+		// step-3 recursively handle the next piece of regular expr
+		_matched, err := matchString(newPattern, strSuf, newLookaheads, newStrOffset, exprOffset, false)
+		if err != nil {
+			return false, err
+		}
+		if _matched {
+			ret = _matched
+			break
+		}
+
 	}
-	return matched, nil
+	return ret, nil
 }

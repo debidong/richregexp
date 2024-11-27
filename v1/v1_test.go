@@ -2,37 +2,16 @@ package v1
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 )
 
-func TestSplitNegLookAhead(t *testing.T) {
-
-	s := "ok computer not ok computer"
-	re := regexp.MustCompile(`computer`)
-	matches := re.FindAllStringIndex(s, -1)
-	for _, match := range matches {
-		fmt.Printf("%v from %v to %v \n", s[match[0]:match[1]], match[0], match[1])
-	}
-}
-
-func TestMustSplitRegex(t *testing.T) {
-	// reg := "foo(?!()bar) and (?=baz) something else"
-	// _ = MustSplitRegex(reg)
-
-	reg := "foo(?!barbazboo(?=okcomputer[0-9].*[a-z]{1,3}anotherNestedLookahead(?=notokcomputer)}}))"
-	lookaheads, err := splitRegex(reg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, lookahead := range lookaheads {
-		fmt.Println(reg[lookahead.idx[0]:lookahead.idx[1]])
-	}
-}
-
 func TestMatchString(t *testing.T) {
 	for i, testcase := range testcases {
+		fmt.Printf("--- testcase %d ---\n", i)
+		fmt.Println(":regex: ", testcase.reg)
+		fmt.Println(":str: ", testcase.s)
 		matched, err := MatchString(testcase.reg, testcase.s)
+		fmt.Println(":result: ", matched)
 		if err != nil {
 			t.Fatalf("failed at testcase %d: %v", i, err)
 		}
@@ -61,7 +40,19 @@ var testcases = []testcase{
 	{reg: "foo(?=bar)", s: "foobar fooboo", matched: true},
 	{reg: "foo(?=bar)", s: "foobar foobar", matched: true},
 
-	// multiple negative lookahead
+	// multiple negative lookaheads
+	{reg: "a(?!b)c(?!d)", s: "ac", matched: true},
+	{reg: "a(?!b)c(?!d)", s: "abcac", matched: true},
+	{reg: "a(?!b)c(?!d)", s: "ad", matched: false},
+	{reg: "a(?!b)c(?!d)", s: "dc", matched: false},
+	{reg: "a(?!b)c(?!d)", s: "bbb", matched: false},
 
-	{reg: "a(?!b)c(?!d)", s: "ac", matched: true}, // TODO: this fails
+	// multiple positive lookaheads
+	{reg: "a(?=[0-9])1(?=[a-z])e", s: "a1e", matched: true},
+	{reg: "a(?=[0-9])1(?=[a-z])e", s: "aa1e", matched: true},
+
+	// mixed expr with negative and positive lookaheads
+	{reg: "a(?![0-9])c(?=[a-z])", s: "a1cd", matched: false},
+	{reg: "a(?![0-9])c(?=[a-z])", s: "acd", matched: true},
+	{reg: "a(?=[0-9])3(?![a-z])[0-9]", s: "a34", matched: true},
 }
