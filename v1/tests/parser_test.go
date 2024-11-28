@@ -15,11 +15,8 @@ func TestMatchString(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		matched, err := regexp.MatchString(testcase.s)
+		matched := regexp.MatchString(testcase.s)
 		fmt.Println(":result: ", matched)
-		if err != nil {
-			t.Fatalf("failed at testcase %d: %v", i, err)
-		}
 		if matched != testcase.matched {
 			t.Fatalf("failed at testcase %d, want %v, got %v", i, testcase.matched, matched)
 		}
