@@ -43,25 +43,26 @@ type bracket struct {
 
 func Compile(expr string) (*Regexp, error) {
 	lookaheads, err := splitRegex(expr)
-	fmt.Println(lookaheads)
 	if err != nil {
 		return nil, err
 	}
 
 	r := new(Regexp)
 	offset := 0
-	for _, l := range lookaheads {
+	for i, l := range lookaheads {
 		start, end := l.idx[0], l.idx[1]
 
-		fmt.Println(expr[offset:start])
-		regOrd, err := regexp.Compile(expr[offset:start])
+		_regOrd := expr[offset:start]
+		if i >= 1 {
+			_regOrd = "^" + _regOrd
+		}
+		regOrd, err := regexp.Compile(_regOrd)
 		if err != nil {
 			return nil, fmt.Errorf("v1.Compile: %w", err)
 		}
 		r.regexpOrd = append(r.regexpOrd, regOrd)
 
-		fmt.Println(expr[start+3 : end-1])
-		regLookahead, err := regexp.Compile(expr[start+3 : end-1])
+		regLookahead, err := regexp.Compile("^" + expr[start+3:end-1])
 		if err != nil {
 			return nil, fmt.Errorf("v1.Compile: %w", err)
 		}
