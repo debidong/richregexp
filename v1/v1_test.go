@@ -54,4 +54,10 @@ var testcases = []testcase{
 	{reg: "a(?![0-9])c(?=[a-z])", s: "a1cd", matched: false},
 	{reg: "a(?![0-9])c(?=[a-z])", s: "acd", matched: true},
 	{reg: "a(?=[0-9])3(?![a-z])[0-9]", s: "a34", matched: true},
+
+	// custom testcases
+	{reg: "^(?!OK$).*", s: "OK", matched: false},
+	{reg: "^(?!OK$).*", s: "NOTOK", matched: true},
+	{reg: "^(?!OK$).*", s: "WARNING", matched: true},
+	{reg: "^(?!OK$).*", s: "ERROR", matched: true},
 }
