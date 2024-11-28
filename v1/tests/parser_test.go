@@ -1,6 +1,7 @@
-package v1
+package v1_test
 
 import (
+	v1 "debidong/re3/v1"
 	"fmt"
 	"testing"
 )
@@ -10,7 +11,7 @@ func TestMatchString(t *testing.T) {
 		fmt.Printf("--- testcase %d ---\n", i)
 		fmt.Println(":regex: ", testcase.reg)
 		fmt.Println(":str: ", testcase.s)
-		matched, err := MatchString(testcase.reg, testcase.s)
+		matched, err := v1.MatchString(testcase.reg, testcase.s)
 		fmt.Println(":result: ", matched)
 		if err != nil {
 			t.Fatalf("failed at testcase %d: %v", i, err)
