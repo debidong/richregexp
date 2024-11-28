@@ -28,7 +28,6 @@ func (e ErrInvalidSyntax) Error() string {
 
 // Regexp stores compiled regular expressions.
 type Regexp struct {
-	T           int
 	regexpOrd   []*regexp.Regexp
 	regexpMixed []*regexpMixed
 }
@@ -55,6 +54,16 @@ func Compile(expr string) (*Regexp, error) {
 
 	r := new(Regexp)
 	offset := 0
+
+	if len(lookaheads) == 0 {
+		regOrd, err := regexp.Compile(expr)
+		if err != nil {
+			return nil, fmt.Errorf("v1.Compile: %w", err)
+		}
+		r.regexpOrd = append(r.regexpOrd, regOrd)
+		return r, nil
+	}
+
 	for i, l := range lookaheads {
 		start, end := l.idx[0], l.idx[1]
 
@@ -91,10 +100,10 @@ func splitRegex(str string) ([]lookahead, error) {
 	for i < len(str) {
 		switch str[i] {
 		case '(':
-			if str[i:i+3] == typeBracketNegLookahead {
+			if i+3 <= len(str) && str[i:i+3] == typeBracketNegLookahead {
 				tree.push(typeBracketNegLookahead, i)
 				i += 2
-			} else if str[i:i+3] == typeBracketPosLookahead {
+			} else if i+3 <= len(str) && str[i:i+3] == typeBracketPosLookahead {
 				tree.push(typeBracketPosLookahead, i)
 				i += 2
 			} else {
@@ -109,7 +118,7 @@ func splitRegex(str string) ([]lookahead, error) {
 	}
 
 	if len(tree.brackets) > 0 {
-		panic(ErrInvalidSyntax{}.Error())
+		return nil, ErrInvalidSyntax{}
 	}
 	return tree.idxLookaheads, nil
 }
