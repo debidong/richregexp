@@ -20,6 +20,12 @@ const (
 	typeBracketNegLookahead = "(?!"
 )
 
+type ErrInvalidSyntax struct{}
+
+func (e ErrInvalidSyntax) Error() string {
+	return "invalid syntax"
+}
+
 // Regexp stores compiled regular expressions.
 type Regexp struct {
 	T           int

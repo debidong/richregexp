@@ -5,12 +5,6 @@ type lookahead struct {
 	idx []int // idx in regex expr
 }
 
-type ErrInvalidSyntax struct{}
-
-func (e ErrInvalidSyntax) Error() string {
-	return "invalid syntax"
-}
-
 // MatchString checks whether a string matches the given regular expression, providing additional syntax supports for negative & positive lookaheads compared with regexp.MatchString(). The algorithm in this version uses stacks to extract lookahead expressions, hence, it does not support regular expressions with NESTED lookaheads.
 func (r *Regexp) MatchString(s string) (matched bool, err error) {
 	return r.matchString(s, 0, 0)
