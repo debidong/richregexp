@@ -53,12 +53,14 @@ func Compile(expr string) (*Regexp, error) {
 	for _, l := range lookaheads {
 		start, end := l.idx[0], l.idx[1]
 
+		fmt.Println(expr[offset:start])
 		regOrd, err := regexp.Compile(expr[offset:start])
 		if err != nil {
 			return nil, fmt.Errorf("v1.Compile: %w", err)
 		}
 		r.regexpOrd = append(r.regexpOrd, regOrd)
 
+		fmt.Println(expr[start+3 : end-1])
 		regLookahead, err := regexp.Compile(expr[start+3 : end-1])
 		if err != nil {
 			return nil, fmt.Errorf("v1.Compile: %w", err)
@@ -66,7 +68,7 @@ func Compile(expr string) (*Regexp, error) {
 		r.regexpMixed = append(r.regexpMixed,
 			&regexpMixed{t: l.t, r: regLookahead},
 		)
-		offset += start
+		offset = end
 	}
 	return r, nil
 }
