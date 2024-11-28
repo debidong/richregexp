@@ -17,8 +17,8 @@ type bracket struct {
 }
 
 type lookahead struct {
-	t   string // type, reuses the type of left brackets
-	idx []int  // idx in regex expr
+	t   int   // type
+	idx []int // idx in regex expr
 }
 
 type syntaxStack struct {
@@ -80,7 +80,7 @@ func matchString(pattern string, s string, lookaheads []lookahead, strOffset int
 			return false, err
 		}
 		matched := reg.MatchString(strSuf)
-		if curLookahead.t == typeBracketNegLookahead {
+		if curLookahead.t == typeRegexNegLookahead {
 			matched = !matched
 		}
 		if !matched {
@@ -117,49 +117,21 @@ func (s *syntaxStack) pop(idx int) error {
 	}
 
 	b := s.brackets[len(s.brackets)-1]
-	if b.t == typeBracketOrd {
+	var _t int
+	switch b.t {
+	case typeBracketOrd:
 		s.brackets = s.brackets[:len(s.brackets)-1]
 		return nil
+	case typeBracketNegLookahead:
+		_t = typeRegexNegLookahead
+	case typeBracketPosLookahead:
+		_t = typeRegexPosLookahead
 	}
 	lookahead := lookahead{
-		t:   b.t,
+		t:   _t,
 		idx: []int{b.idx, idx + 1},
 	}
 	s.idxLookaheads = append(s.idxLookaheads, lookahead)
 	s.brackets = s.brackets[:len(s.brackets)-1]
 	return nil
-}
-
-func splitRegex(str string) ([]lookahead, error) {
-	if len(str) <= 3 {
-		return []lookahead{}, nil
-	}
-
-	var tree syntaxStack
-
-	i := 0
-	for i < len(str) {
-		switch str[i] {
-		case '(':
-			if str[i:i+3] == typeBracketNegLookahead {
-				tree.push(typeBracketNegLookahead, i)
-				i += 2
-			} else if str[i:i+3] == typeBracketPosLookahead {
-				tree.push(typeBracketPosLookahead, i)
-				i += 2
-			} else {
-				tree.push(typeBracketOrd, i)
-			}
-		case ')':
-			if err := tree.pop(i); err != nil {
-				return nil, err
-			}
-		}
-		i += 1
-	}
-
-	if len(tree.brackets) > 0 {
-		panic(ErrInvalidSyntax{}.Error())
-	}
-	return tree.idxLookaheads, nil
 }
