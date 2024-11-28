@@ -6,24 +6,9 @@ import (
 	"strings"
 )
 
-// types of left brackets
-const typeBracketOrd = "("
-const typeBracketPosLookahead = "(?="
-const typeBracketNegLookahead = "(?!"
-
-type bracket struct {
-	t   string // type
-	idx int    // idx in regex expr
-}
-
 type lookahead struct {
 	t   int   // type
 	idx []int // idx in regex expr
-}
-
-type syntaxStack struct {
-	idxLookaheads []lookahead
-	brackets      []bracket
 }
 
 type ErrInvalidSyntax struct{}
@@ -102,36 +87,4 @@ func matchString(pattern string, s string, lookaheads []lookahead, strOffset int
 
 	}
 	return ret, nil
-}
-
-func (s *syntaxStack) push(t string, idx int) {
-	s.brackets = append(
-		s.brackets,
-		bracket{t: t, idx: idx},
-	)
-}
-
-func (s *syntaxStack) pop(idx int) error {
-	if len(s.brackets) == 0 {
-		return ErrInvalidSyntax{}
-	}
-
-	b := s.brackets[len(s.brackets)-1]
-	var _t int
-	switch b.t {
-	case typeBracketOrd:
-		s.brackets = s.brackets[:len(s.brackets)-1]
-		return nil
-	case typeBracketNegLookahead:
-		_t = typeRegexNegLookahead
-	case typeBracketPosLookahead:
-		_t = typeRegexPosLookahead
-	}
-	lookahead := lookahead{
-		t:   _t,
-		idx: []int{b.idx, idx + 1},
-	}
-	s.idxLookaheads = append(s.idxLookaheads, lookahead)
-	s.brackets = s.brackets[:len(s.brackets)-1]
-	return nil
 }
