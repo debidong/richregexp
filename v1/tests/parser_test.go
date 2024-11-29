@@ -62,4 +62,35 @@ var testcases = []testcase{
 	{reg: "^(?!OK$).*", s: "NOTOK", matched: true},
 	{reg: "^(?!OK$).*", s: "WARNING", matched: true},
 	{reg: "^(?!OK$).*", s: "ERROR", matched: true},
+
+	// examples of matching status codes
+	// 1. `5xx`
+	// Regexp: `^(5[0-9]{2})$`
+	{reg: "^(5[0-9]{2})$", s: "499", matched: false},
+	{reg: "^(5[0-9]{2})$", s: "500", matched: true},
+	{reg: "^(5[0-9]{2})$", s: "501", matched: true},
+	// 2. `warn|error|debug`
+	// Regexp: `^(warn|error|debug)$`
+	{reg: "^(warn|error|debug)$", s: "info", matched: false},
+	{reg: "^(warn|error|debug)$", s: "warn", matched: true},
+	{reg: "^(warn|error|debug)$", s: "error", matched: true},
+	{reg: "^(warn|error|debug)$", s: "debug", matched: true},
+	// 3. !0
+	// Regexp: `^[^0].*$`
+	{reg: "^[^0].*$", s: "0", matched: false},
+	{reg: "^[^0].*$", s: "ERROR", matched: true},
+	{reg: "^[^0].*$", s: "400", matched: true},
+	{reg: "^[^0].*$", s: "500", matched: true},
+	// 4. >0
+	// Regexp: `^[1-9]\d*$`
+	{reg: "^[1-9]\\d*$", s: "0", matched: false},
+	{reg: "^[1-9]\\d*$", s: "1", matched: true},
+	{reg: "^[1-9]\\d*$", s: "100", matched: true},
+	{reg: "^[1-9]\\d*$", s: "200", matched: true},
+	{reg: "^[1-9]\\d*$", s: "500", matched: true},
+	// 5. 0 not match 00x match
+	// Regexp: `^(?!0$)0\d*$`
+	{reg: "^(?!0$)0\\d*$", s: "0", matched: false},
+	{reg: "^(?!0$)0\\d*$", s: "001", matched: true},
+	{reg: "^(?!0$)0\\d*$", s: "00100", matched: true},
 }
