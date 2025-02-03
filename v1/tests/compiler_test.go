@@ -1,8 +1,9 @@
 package v1_test
 
 import (
-	v1 "debidong/re3/v1"
 	"testing"
+
+	v1 "github.com/debidong/re3/v1"
 )
 
 func TestCompile(t *testing.T) {
